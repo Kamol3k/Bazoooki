@@ -1,0 +1,74 @@
+# vim:set noet sts=0 sw=4 ts=4 tw=500 ft=mysql:
+
+USE kolos;
+
+#############
+# Zadanie 1 #
+#############
+
+CREATE TABLE Czasopisma (
+	Czasopismo_ID  Integer           NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	Nazwa          Varchar(50)       UNIQUE NOT NULL,
+	Typ            ENUM("Tygodnik",  "Dwutygodnik",  "Miesięcznik",  "Inne")
+);
+
+CREATE TABLE Artykuly (
+	Artykul_ID     Integer      NOT  NULL   PRIMARY  KEY  AUTO_INCREMENT,
+	Autor_ID       Integer      NOT  NULL,
+	Czasopismo_ID  Integer      NOT  NULL,
+	Tytul          Varchar(50)  NOT  NULL,
+	Ilosc_stron    Integer,
+	Data_wydania   Date
+);
+
+CREATE TABLE Autorzy (
+	Autor_ID        Integer        NOT     NULL   PRIMARY  KEY  AUTO_INCREMENT,
+	Imie            Varchar(20)    NOT     NULL,
+	Nazwisko 		Varchar(30)	   NOT     NULL,
+	Data_urodzenia  Date,
+	PESEL           Decimal(11,0)  UNIQUE
+);
+
+ALTER TABLE Artykuly ADD CONSTRAINT czasopisma_artykuly_FK FOREIGN KEY (Czasopismo_ID) REFERENCES Czasopisma(Czasopismo_ID);
+ALTER TABLE Artykuly ADD CONSTRAINT autorzy_artykuly_FK FOREIGN KEY (Autor_ID) REFERENCES Autorzy(Autor_ID);
+
+INSERT INTO Czasopisma (Nazwa, Typ) VALUES
+('Re-contextualized', 'Tygodnik'),
+('intermediate', 'Inne'),
+('flexibility', 'Miesiecznik');
+
+INSERT INTO Autorzy (Imie, Nazwisko, Data_urodzenia, PESEL) VALUES
+('Dredi', 'Deener', '1988-09-18 23:00:07', 71576091551),
+('Eleanora', 'Brooker', '1954-11-15 18:15:42', 90071470053);
+
+INSERT INTO Artykuly (Autor_ID, Czasopismo_ID, Tytul, Ilosc_stron, Data_wydania) VALUES
+(2, 3, 'Assimilated intangible time-frame', 17, '2018-09-18 09:14:42'),
+(1, 3, 'Programmable modular contingency', 19, '2018-12-11 19:21:07'),
+(2, 1, 'Re-contextualized analyzing hierarchy', 28, '2018-11-21 16:16:01'),
+(2, 1, 'Triple-buffered cohesive hardware', 14, '2019-04-11 09:25:07'),
+(2, 3, 'Digitized demand-driven throughput', 20, '2018-07-04 03:57:51'),
+(2, 2, 'Reverse-engineered executive pricing structure', 20, '2018-06-05 20:56:24'),
+(1, 3, 'Upgradable directional extranet', 19, '2018-12-18 00:48:51'),
+(1, 3, 'Object-based composite function', 11, '2018-07-27 16:27:01');
+
+SELECT
+	c.Nazwa AS "Nazwa czasopisma",
+	c.Typ AS "Typ czasopisma",
+	art.Tytul AS "Tytuł artykułu",
+	art.Ilosc_stron AS "Ilość stron",
+	art.Data_wydania as "Data wydania",
+	CONCAT( aut.Imie, " ", aut.Nazwisko ) AS "Autor",
+	aut.pesel AS "PESEL"
+FROM Artykuly art
+LEFT JOIN Czasopismo c ON c.Czasopismo_ID = art.Czasopismo_ID
+LEFT JOIN Autorzy aut ON aut.Autor_ID = art.Autor_ID;
+
+#############
+# Zadanie 2 #
+#############
+
+SELECT w.id as "Numer ID hurtowni", SUM(i.max_in_stock - i.amount_in_stock) AS "Sumaryczna sprzedaż"
+FROM inventory i
+LEFT JOIN warehouse w ON i.warehouse_id = w.id
+GROUP BY w.id
+ORDER BY SUM(i.max_in_stock - i.amount_in_stock) DESC;
